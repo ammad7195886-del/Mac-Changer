@@ -9,28 +9,21 @@ jobs:
 
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Install .NET 8 SDK
-        uses: actions/setup-dotnet@v4
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
+      - name: Restore project
         run: dotnet restore SimpleMACChanger.csproj
 
-      - name: Build Windows EXE
-        run: >
-          dotnet publish SimpleMACChanger.csproj
-          -c Release
-          -r win-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -o publish
+      - name: Build EXE
+        run: dotnet publish SimpleMACChanger.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
 
       - name: Upload EXE
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SimpleMACChanger-Windows-x64
           path: publish/SimpleMACChanger.exe
