@@ -2,480 +2,445 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Simple MAC Changer"
-        Width="760"
+        Width="460"
         Height="570"
-        MinWidth="700"
-        MinHeight="520"
-        WindowStartupLocation="CenterScreen"
+        MinWidth="460"
+        MinHeight="570"
+        MaxWidth="460"
+        MaxHeight="570"
+        WindowStartupLocation="Manual"
         WindowStyle="None"
-        ResizeMode="CanResize"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
         Background="Transparent"
-        AllowsTransparency="True">
+        ShowInTaskbar="True">
 
     <Window.Resources>
 
-        <!-- COLORS -->
-        <SolidColorBrush x:Key="WindowBackground" Color="#0B1020"/>
-        <SolidColorBrush x:Key="PanelBackground" Color="#11182A"/>
-        <SolidColorBrush x:Key="CardBackground" Color="#151E32"/>
-        <SolidColorBrush x:Key="CardBorder" Color="#25304A"/>
-        <SolidColorBrush x:Key="PrimaryBlue" Color="#4B7BFF"/>
-        <SolidColorBrush x:Key="PrimaryBlueDark" Color="#315FD9"/>
-        <SolidColorBrush x:Key="TextPrimary" Color="#F4F7FF"/>
-        <SolidColorBrush x:Key="TextSecondary" Color="#8D9AB5"/>
-        <SolidColorBrush x:Key="Green" Color="#65E8AE"/>
-        <SolidColorBrush x:Key="Red" Color="#FF647C"/>
+        <!-- Brushes -->
+        <SolidColorBrush x:Key="WindowBackground" Color="#070D1A"/>
+        <SolidColorBrush x:Key="HeaderBackground" Color="#091222"/>
+        <SolidColorBrush x:Key="CardBackground" Color="#0D1627"/>
+        <SolidColorBrush x:Key="CardBorder" Color="#263A5C"/>
+        <SolidColorBrush x:Key="PrimaryBlue" Color="#246BEB"/>
+        <SolidColorBrush x:Key="PrimaryBlue2" Color="#1747C5"/>
+        <SolidColorBrush x:Key="Green" Color="#17964F"/>
+        <SolidColorBrush x:Key="Red" Color="#D9283A"/>
+        <SolidColorBrush x:Key="TextWhite" Color="#F4F7FF"/>
+        <SolidColorBrush x:Key="TextGray" Color="#8D9BB5"/>
+        <SolidColorBrush x:Key="Purple" Color="#914EFF"/>
+        <SolidColorBrush x:Key="GreenText" Color="#63E8AE"/>
 
-        <!-- SHADOW -->
-        <DropShadowEffect x:Key="WindowShadow"
-                          BlurRadius="28"
-                          ShadowDepth="0"
-                          Opacity="0.45"
-                          Color="#000000"/>
-
-        <DropShadowEffect x:Key="ButtonShadow"
-                          BlurRadius="12"
-                          ShadowDepth="2"
-                          Opacity="0.25"
-                          Color="#000000"/>
-
-        <!-- ROUNDED BUTTON -->
-        <Style x:Key="RoundedButton" TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <!-- Main button -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="18,0"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="ButtonBorder"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="10"
-                                SnapsToDevicePixels="True">
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
-                        </Border>
+            <Setter Property="Padding" Value="10"/>
+        </Style>
 
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonBorder"
-                                        Property="Opacity"
-                                        Value="0.88"/>
-                            </Trigger>
-
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonBorder"
-                                        Property="Opacity"
-                                        Value="0.70"/>
-                            </Trigger>
-
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ButtonBorder"
-                                        Property="Opacity"
-                                        Value="0.40"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+        <!-- Small icon button -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Background" Value="#172337"/>
+            <Setter Property="Foreground" Value="#9D62FF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="18"/>
         </Style>
 
     </Window.Resources>
 
-
-    <!-- OUTER WINDOW -->
-    <Border Margin="12"
+    <!-- Outer rounded window -->
+    <Border CornerRadius="18"
             Background="{StaticResource WindowBackground}"
-            CornerRadius="18"
-            Effect="{StaticResource WindowShadow}"
-            BorderBrush="#202A43"
+            BorderBrush="#31518A"
             BorderThickness="1">
 
         <Grid>
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="72"/>
+                <RowDefinition Height="78"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="76"/>
             </Grid.RowDefinitions>
 
-
-            <!-- ========================= -->
-            <!-- TITLE BAR -->
-            <!-- ========================= -->
+            <!-- ================= HEADER ================= -->
 
             <Border Grid.Row="0"
-                    Background="#0D1425"
+                    Background="{StaticResource HeaderBackground}"
                     CornerRadius="18,18,0,0"
                     MouseLeftButtonDown="TitleBar_MouseDown">
 
-                <Grid Margin="24,0">
+                <Grid Margin="18,0">
 
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="58"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="42"/>
-                        <ColumnDefinition Width="42"/>
-                        <ColumnDefinition Width="42"/>
+                        <ColumnDefinition Width="105"/>
                     </Grid.ColumnDefinitions>
 
+                    <!-- Wi-Fi logo -->
+                    <Border Grid.Column="0"
+                            Width="48"
+                            Height="48"
+                            CornerRadius="13"
+                            Background="#2B5BE9"
+                            VerticalAlignment="Center">
 
-                    <!-- LOGO + TITLE -->
+                        <Viewbox Margin="9">
+                            <Canvas Width="32" Height="32">
 
-                    <StackPanel Grid.Column="0"
-                                Orientation="Horizontal"
+                                <Path Stroke="White"
+                                      StrokeThickness="3"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Data="M 3,12 Q 16,0 29,12"/>
+
+                                <Path Stroke="White"
+                                      StrokeThickness="3"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Data="M 8,18 Q 16,10 24,18"/>
+
+                                <Ellipse Fill="White"
+                                         Width="5"
+                                         Height="5"
+                                         Canvas.Left="13.5"
+                                         Canvas.Top="22"/>
+
+                            </Canvas>
+                        </Viewbox>
+
+                    </Border>
+
+                    <!-- Title -->
+                    <StackPanel Grid.Column="1"
+                                Margin="14,0,0,0"
                                 VerticalAlignment="Center">
 
-                        <!-- WIFI ICON -->
+                        <TextBlock Text="Simple MAC Changer"
+                                   FontFamily="Segoe UI"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextWhite}"/>
 
-                        <Border Width="40"
-                                Height="40"
-                                CornerRadius="11"
-                                Background="#18264B"
-                                Margin="0,0,13,0">
-
-                            <Grid>
-
-                                <!-- Wi-Fi arcs -->
-
-                                <Path Stroke="#5E8BFF"
-                                      StrokeThickness="3"
-                                      StrokeStartLineCap="Round"
-                                      StrokeEndLineCap="Round"
-                                      Data="M 9,16 Q 20,6 31,16"/>
-
-                                <Path Stroke="#5E8BFF"
-                                      StrokeThickness="3"
-                                      StrokeStartLineCap="Round"
-                                      StrokeEndLineCap="Round"
-                                      Data="M 13,21 Q 20,15 27,21"/>
-
-                                <Ellipse Width="5"
-                                         Height="5"
-                                         Fill="#5E8BFF"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Bottom"
-                                         Margin="0,0,0,7"/>
-
-                            </Grid>
-                        </Border>
-
-
-                        <StackPanel VerticalAlignment="Center">
-
-                            <TextBlock Text="Simple MAC Changer"
-                                       FontFamily="Segoe UI"
-                                       FontSize="17"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextPrimary}"/>
-
-                            <TextBlock Text="Network identity utility"
-                                       FontFamily="Segoe UI"
-                                       FontSize="11"
-                                       Foreground="{StaticResource TextSecondary}"
-                                       Margin="0,2,0,0"/>
-
-                        </StackPanel>
+                        <TextBlock Text="Change your Wi-Fi MAC address easily"
+                                   Margin="0,3,0,0"
+                                   FontFamily="Segoe UI"
+                                   FontSize="10"
+                                   Foreground="{StaticResource TextGray}"/>
 
                     </StackPanel>
 
+                    <!-- Window buttons -->
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
 
-                    <!-- MINIMIZE -->
+                        <Button Width="32"
+                                Height="32"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="White"
+                                FontSize="17"
+                                Content="─"
+                                Click="Minimize_Click"
+                                Cursor="Hand"/>
 
-                    <Button Grid.Column="1"
-                            Width="34"
-                            Height="34"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="#77849E"
-                            FontSize="18"
-                            Content="−"
-                            Click="Minimize_Click"/>
+                        <Button Width="32"
+                                Height="32"
+                                Margin="4,0,0,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="White"
+                                FontSize="15"
+                                Content="□"
+                                Click="Maximize_Click"
+                                Cursor="Hand"/>
 
+                        <Button Width="32"
+                                Height="32"
+                                Margin="4,0,0,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="White"
+                                FontSize="19"
+                                Content="×"
+                                Click="Close_Click"
+                                Cursor="Hand"/>
 
-                    <!-- MAXIMIZE -->
-
-                    <Button Grid.Column="2"
-                            Width="34"
-                            Height="34"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="#77849E"
-                            FontSize="14"
-                            Content="□"
-                            Click="Maximize_Click"/>
-
-
-                    <!-- CLOSE -->
-
-                    <Button Grid.Column="3"
-                            Width="34"
-                            Height="34"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="#77849E"
-                            FontSize="15"
-                            Content="✕"
-                            Click="Close_Click"/>
+                    </StackPanel>
 
                 </Grid>
 
             </Border>
 
-
-            <!-- ========================= -->
-            <!-- MAIN CONTENT -->
-            <!-- ========================= -->
+            <!-- ================= CONTENT ================= -->
 
             <ScrollViewer Grid.Row="1"
-                          VerticalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Hidden"
                           HorizontalScrollBarVisibility="Disabled">
 
-                <StackPanel Margin="30,25,30,25">
+                <StackPanel Margin="18,18,18,18">
 
+                    <!-- ACTIVE ADAPTER CARD -->
 
-                    <!-- HEADER -->
-
-                    <TextBlock Text="MAC Address"
-                               FontFamily="Segoe UI"
-                               FontSize="25"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimary}"/>
-
-                    <TextBlock Text="Generate and preview a new locally administered MAC address."
-                               FontFamily="Segoe UI"
-                               FontSize="13"
-                               Foreground="{StaticResource TextSecondary}"
-                               Margin="0,6,0,22"/>
-
-
-                    <!-- ADAPTER CARD -->
-
-                    <Border Background="{StaticResource CardBackground}"
-                            BorderBrush="{StaticResource CardBorder}"
+                    <Border Height="132"
+                            CornerRadius="15"
+                            Background="#101D35"
+                            BorderBrush="#304F88"
                             BorderThickness="1"
-                            CornerRadius="14"
-                            Padding="18">
+                            Padding="14">
 
                         <Grid>
 
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="74"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel>
-
-                                <TextBlock Text="ACTIVE ADAPTER"
-                                           FontFamily="Segoe UI"
-                                           FontSize="10"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource TextSecondary}"/>
-
-                                <TextBlock Text="Wi-Fi"
-                                           FontFamily="Segoe UI"
-                                           FontSize="16"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimary}"
-                                           Margin="0,5,0,2"/>
-
-                                <TextBlock Text="Wireless network adapter"
-                                           FontFamily="Segoe UI"
-                                           FontSize="11"
-                                           Foreground="{StaticResource TextSecondary}"/>
-
-                            </StackPanel>
-
-
-                            <!-- CONNECTED BADGE -->
-
-                            <Border Grid.Column="1"
-                                    Background="#142D26"
-                                    CornerRadius="20"
-                                    Padding="13,7"
+                            <!-- WiFi circle -->
+                            <Border Grid.Column="0"
+                                    Width="62"
+                                    Height="62"
+                                    CornerRadius="31"
+                                    Background="#2167E9"
                                     VerticalAlignment="Center">
 
-                                <StackPanel Orientation="Horizontal">
+                                <Viewbox Margin="13">
+                                    <Canvas Width="32" Height="32">
 
-                                    <Ellipse Width="7"
-                                             Height="7"
-                                             Fill="{StaticResource Green}"
-                                             Margin="0,0,7,0"/>
+                                        <Path Stroke="White"
+                                              StrokeThickness="3"
+                                              StrokeStartLineCap="Round"
+                                              StrokeEndLineCap="Round"
+                                              Data="M 3,12 Q 16,0 29,12"/>
 
-                                    <TextBlock Text="CONNECTED"
-                                               FontFamily="Segoe UI"
-                                               FontSize="10"
-                                               FontWeight="Bold"
-                                               Foreground="{StaticResource Green}"/>
+                                        <Path Stroke="White"
+                                              StrokeThickness="3"
+                                              StrokeStartLineCap="Round"
+                                              StrokeEndLineCap="Round"
+                                              Data="M 8,18 Q 16,10 24,18"/>
 
-                                </StackPanel>
+                                        <Ellipse Fill="White"
+                                                 Width="5"
+                                                 Height="5"
+                                                 Canvas.Left="13.5"
+                                                 Canvas.Top="22"/>
+
+                                    </Canvas>
+                                </Viewbox>
 
                             </Border>
 
+                            <!-- Adapter information -->
+                            <StackPanel Grid.Column="1"
+                                        Margin="12,0,0,0"
+                                        VerticalAlignment="Center">
+
+                                <TextBlock Text="ACTIVE ADAPTER"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="#3D8BFF"/>
+
+                                <TextBlock x:Name="AdapterNameText"
+                                           Text="Detecting Wi-Fi adapter..."
+                                           Margin="0,7,0,0"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource TextWhite}"
+                                           TextTrimming="CharacterEllipsis"/>
+
+                                <TextBlock Text="Network Adapter"
+                                           Margin="0,5,0,0"
+                                           FontSize="10"
+                                           Foreground="{StaticResource TextGray}"/>
+
+                            </StackPanel>
+
                         </Grid>
 
                     </Border>
 
 
-                    <!-- SPACING -->
+                    <!-- MAC CARD -->
 
-                    <Rectangle Height="14"
-                               Fill="Transparent"/>
-
-
-                    <!-- MAC GRID -->
-
-                    <Grid>
-
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="14"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-
-                        <!-- OLD MAC -->
-
-                        <Border Grid.Column="0"
-                                Background="{StaticResource CardBackground}"
-                                BorderBrush="{StaticResource CardBorder}"
-                                BorderThickness="1"
-                                CornerRadius="14"
-                                Padding="18">
-
-                            <StackPanel>
-
-                                <TextBlock Text="ORIGINAL MAC"
-                                           FontFamily="Segoe UI"
-                                           FontSize="10"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource TextSecondary}"/>
-
-                                <TextBlock Text="00-E0-38-8F-DC-C6"
-                                           FontFamily="Consolas"
-                                           FontSize="18"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimary}"
-                                           Margin="0,12,0,3"/>
-
-                                <TextBlock Text="Hardware address"
-                                           FontFamily="Segoe UI"
-                                           FontSize="10"
-                                           Foreground="{StaticResource TextSecondary}"/>
-
-                            </StackPanel>
-
-                        </Border>
-
-
-                        <!-- CURRENT MAC -->
-
-                        <Border Grid.Column="2"
-                                Background="{StaticResource CardBackground}"
-                                BorderBrush="{StaticResource CardBorder}"
-                                BorderThickness="1"
-                                CornerRadius="14"
-                                Padding="18">
-
-                            <StackPanel>
-
-                                <TextBlock Text="CURRENT MAC"
-                                           FontFamily="Segoe UI"
-                                           FontSize="10"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource TextSecondary}"/>
-
-                                <TextBlock x:Name="CurrentMacText"
-                                           Text="00-E0-38-8F-DC-C6"
-                                           FontFamily="Consolas"
-                                           FontSize="18"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimary}"
-                                           Margin="0,12,0,3"/>
-
-                                <TextBlock x:Name="StatusText"
-                                           Text="●  CONNECTED"
-                                           FontFamily="Segoe UI"
-                                           FontSize="10"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource Green}"/>
-
-                            </StackPanel>
-
-                        </Border>
-
-                    </Grid>
-
-
-                    <!-- SPACING -->
-
-                    <Rectangle Height="14"
-                               Fill="Transparent"/>
-
-
-                    <!-- NEW MAC CARD -->
-
-                    <Border Background="#121C31"
-                            BorderBrush="#2C3C63"
+                    <Border Margin="0,12,0,0"
+                            CornerRadius="15"
+                            Background="{StaticResource CardBackground}"
+                            BorderBrush="{StaticResource CardBorder}"
                             BorderThickness="1"
-                            CornerRadius="14"
-                            Padding="18">
+                            Padding="14">
 
-                        <Grid>
+                        <StackPanel>
 
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                            <!-- OLD MAC -->
+
+                            <Grid Height="70">
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0"
+                                            VerticalAlignment="Center">
+
+                                    <TextBlock Text="Old MAC Address"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextWhite}"/>
+
+                                    <TextBlock Text="Original adapter address"
+                                               Margin="0,5,0,0"
+                                               FontSize="9"
+                                               Foreground="{StaticResource TextGray}"/>
+
+                                </StackPanel>
+
+                                <Border Grid.Column="1"
+                                        Height="46"
+                                        CornerRadius="10"
+                                        Background="#0B1422"
+                                        BorderBrush="#1E2D45"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center">
+
+                                    <TextBlock x:Name="OldMacText"
+                                               Text="--"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontFamily="Consolas"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextWhite}"/>
+
+                                </Border>
+
+                            </Grid>
+
+                            <Border Height="1"
+                                    Background="#223149"/>
 
 
-                            <StackPanel>
+                            <!-- CURRENT MAC -->
 
-                                <TextBlock Text="NEW MAC ADDRESS"
-                                           FontFamily="Segoe UI"
-                                           FontSize="10"
-                                           FontWeight="Bold"
-                                           Foreground="#7F9DEB"/>
+                            <Grid Height="70">
 
-                                <TextBlock x:Name="NewMacText"
-                                           Text="Not generated yet"
-                                           FontFamily="Consolas"
-                                           FontSize="21"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimary}"
-                                           Margin="0,9,0,0"/>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                            </StackPanel>
+                                <StackPanel Grid.Column="0"
+                                            VerticalAlignment="Center">
+
+                                    <TextBlock Text="Current MAC Address"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextWhite}"/>
+
+                                    <TextBlock Text="Address currently in use"
+                                               Margin="0,5,0,0"
+                                               FontSize="9"
+                                               Foreground="{StaticResource TextGray}"/>
+
+                                </StackPanel>
+
+                                <Border Grid.Column="1"
+                                        Height="46"
+                                        CornerRadius="10"
+                                        Background="#0B1422"
+                                        BorderBrush="#1E2D45"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center">
+
+                                    <TextBlock x:Name="CurrentMacText"
+                                               Text="--"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontFamily="Consolas"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextWhite}"/>
+
+                                </Border>
+
+                            </Grid>
+
+                            <Border Height="1"
+                                    Background="#223149"/>
 
 
-                            <!-- COPY -->
+                            <!-- NEW MAC -->
 
-                            <Button Grid.Column="1"
-                                    Width="82"
-                                    Height="38"
-                                    Content="Copy"
-                                    Background="#1C2945"
-                                    Foreground="#B9C8EA"
-                                    Style="{StaticResource RoundedButton}"
-                                    Click="Copy_Click"/>
+                            <Grid Height="70">
 
-                        </Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0"
+                                            VerticalAlignment="Center">
+
+                                    <TextBlock Text="New MAC Address"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextWhite}"/>
+
+                                    <TextBlock Text="Generated MAC address"
+                                               Margin="0,5,0,0"
+                                               FontSize="9"
+                                               Foreground="{StaticResource TextGray}"/>
+
+                                </StackPanel>
+
+                                <Border Grid.Column="1"
+                                        Height="46"
+                                        CornerRadius="10"
+                                        Background="#0B1422"
+                                        BorderBrush="#263A5C"
+                                        BorderThickness="1">
+
+                                    <Grid>
+
+                                        <TextBlock x:Name="NewMacText"
+                                                   Text="Not generated yet"
+                                                   Margin="12,0,42,0"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Center"
+                                                   FontFamily="Consolas"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextGray}"/>
+
+                                        <Button x:Name="CopyButton"
+                                                Width="40"
+                                                Height="44"
+                                                HorizontalAlignment="Right"
+                                                Style="{StaticResource IconButton}"
+                                                Content="▣"
+                                                Click="Copy_Click"
+                                                ToolTip="Copy MAC address"/>
+
+                                    </Grid>
+
+                                </Border>
+
+                            </Grid>
+
+                        </StackPanel>
 
                     </Border>
-
-
-                    <!-- SPACING -->
-
-                    <Rectangle Height="18"
-                               Fill="Transparent"/>
 
 
                     <!-- ACTION BUTTONS -->
 
-                    <Grid>
+                    <Grid Margin="0,12,0,0"
+                          Height="82">
 
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -484,66 +449,120 @@
                         </Grid.ColumnDefinitions>
 
 
-                        <!-- GENERATE -->
+                        <!-- Generate -->
 
                         <Button Grid.Column="0"
-                                Height="48"
-                                Content="✦   Generate New MAC"
-                                Background="{StaticResource PrimaryBlue}"
-                                Effect="{StaticResource ButtonShadow}"
-                                Style="{StaticResource RoundedButton}"
-                                Click="Generate_Click"/>
+                                Style="{StaticResource ActionButton}"
+                                Click="Generate_Click">
+
+                            <Border CornerRadius="13"
+                                    Background="{StaticResource PrimaryBlue}">
+
+                                <StackPanel HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+
+                                    <TextBlock Text="✦  Generate New MAC"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="Generate &amp; apply"
+                                               FontSize="9"
+                                               Margin="0,5,0,0"
+                                               Foreground="#D9E6FF"
+                                               HorizontalAlignment="Center"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                        </Button>
 
 
-                        <!-- RESTORE -->
+                        <!-- Restore -->
 
                         <Button Grid.Column="2"
-                                Height="48"
-                                Content="↻   Restore MAC"
-                                Background="#1B273F"
-                                Foreground="#D9E2F7"
-                                BorderBrush="#2B3A58"
-                                Style="{StaticResource RoundedButton}"
-                                Click="Restore_Click"/>
+                                Style="{StaticResource ActionButton}"
+                                Click="Restore_Click">
+
+                            <Border CornerRadius="13"
+                                    Background="{StaticResource Green}">
+
+                                <StackPanel HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+
+                                    <TextBlock Text="↻  Restore MAC"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="Restore original"
+                                               FontSize="9"
+                                               Margin="0,5,0,0"
+                                               Foreground="#D5FFE9"
+                                               HorizontalAlignment="Center"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                        </Button>
 
                     </Grid>
+
+
+                    <!-- STATUS -->
+
+                    <TextBlock x:Name="StatusText"
+                               Text="●  CONNECTED"
+                               Margin="0,9,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="10"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource GreenText}"/>
+
+
+                    <!-- QUIT -->
+
+                    <Button Height="55"
+                            Margin="0,8,0,0"
+                            Style="{StaticResource ActionButton}"
+                            Click="Close_Click">
+
+                        <Border CornerRadius="12"
+                                Background="{StaticResource Red}">
+
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+
+                                <TextBlock Text="⏻"
+                                           FontSize="21"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,10,0"/>
+
+                                <StackPanel>
+
+                                    <TextBlock Text="Quit"
+                                               FontSize="13"
+                                               FontWeight="Bold"/>
+
+                                    <TextBlock Text="Close the application"
+                                               FontSize="9"
+                                               Margin="0,2,0,0"
+                                               Foreground="#FFE1E4"/>
+
+                                </StackPanel>
+
+                            </StackPanel>
+
+                        </Border>
+
+                    </Button>
 
                 </StackPanel>
 
             </ScrollViewer>
-
-
-            <!-- ========================= -->
-            <!-- FOOTER -->
-            <!-- ========================= -->
-
-            <Border Grid.Row="2"
-                    Background="#0D1425"
-                    CornerRadius="0,0,18,18"
-                    BorderBrush="#202A43"
-                    BorderThickness="0,1,0,0">
-
-                <Grid Margin="30,0">
-
-                    <TextBlock Text="Simple MAC Changer"
-                               VerticalAlignment="Center"
-                               FontFamily="Segoe UI"
-                               FontSize="11"
-                               Foreground="{StaticResource TextSecondary}"/>
-
-
-                    <Button HorizontalAlignment="Right"
-                            Width="90"
-                            Height="36"
-                            Content="Quit"
-                            Background="#321D27"
-                            Foreground="#FF7E91"
-                            Style="{StaticResource RoundedButton}"
-                            Click="Close_Click"/>
-
-                </Grid>
-
-            </Border>
 
         </Grid>
 
