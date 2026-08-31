@@ -1,9 +1,12 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Win32;
 
 namespace SimpleMACChanger
 {
@@ -12,16 +15,16 @@ namespace SimpleMACChanger
         private readonly Random _random = new Random();
 
         private NetworkInterface? _wifiAdapter;
-
         private string _originalMac = "Not available";
+
+        private const string NetworkClassGuid =
+            "4D36E972-E325-11CE-BFC1-08002BE10318";
 
         public MainWindow()
         {
             InitializeComponent();
-
             DetectWifiAdapter();
         }
-
 
         // ============================================================
         // DETECT WI-FI ADAPTER
@@ -34,145 +37,95 @@ namespace SimpleMACChanger
                 var adapters =
                     NetworkInterface.GetAllNetworkInterfaces();
 
-
-                // First look for a connected Wi-Fi adapter.
-
                 _wifiAdapter = adapters
                     .Where(a =>
                         a.NetworkInterfaceType ==
-                            NetworkInterfaceType.Wireless80211 &&
+                        NetworkInterfaceType.Wireless80211 &&
                         a.OperationalStatus ==
-                            OperationalStatus.Up)
+                        OperationalStatus.Up)
                     .FirstOrDefault();
-
-
-                // If Wi-Fi isn't connected,
-                // find an installed Wi-Fi adapter.
 
                 if (_wifiAdapter == null)
                 {
                     _wifiAdapter = adapters
                         .Where(a =>
                             a.NetworkInterfaceType ==
-                                NetworkInterfaceType.Wireless80211)
+                            NetworkInterfaceType.Wireless80211)
                         .FirstOrDefault();
                 }
-
-
-                // No Wi-Fi adapter.
 
                 if (_wifiAdapter == null)
                 {
                     AdapterNameText.Text =
                         "No Wi-Fi adapter detected";
 
-                    OldMacText.Text =
-                        "Not available";
+                    OldMacText.Text = "Not available";
+                    CurrentMacText.Text = "Not available";
 
-                    CurrentMacText.Text =
-                        "Not available";
-
-                    StatusText.Text =
-                        "●  NOT FOUND";
-
-                    StatusText.Foreground =
-                        new SolidColorBrush(
-                            Color.FromRgb(255, 100, 100));
+                    SetStatus(
+                        "●  NOT FOUND",
+                        Color.FromRgb(255, 100, 100));
 
                     return;
                 }
 
-
-                // ====================================================
-                // ADAPTER NAME
-                // ====================================================
-
-                string adapterName =
-                    _wifiAdapter.Name;
-
-                string description =
-                    _wifiAdapter.Description;
-
-
                 AdapterNameText.Text =
-                    $"{adapterName} - {description}";
-
-
-                // ====================================================
-                // ORIGINAL MAC
-                // ====================================================
+                    $"{_wifiAdapter.Name} - {_wifiAdapter.Description}";
 
                 _originalMac =
-                    FormatMac(
-                        _wifiAdapter.GetPhysicalAddress());
+                    GetCurrentMac();
 
-
-                OldMacText.Text =
-                    _originalMac;
-
-                CurrentMacText.Text =
-                    _originalMac;
-
-
-                // ====================================================
-                // STATUS
-                // ====================================================
+                OldMacText.Text = _originalMac;
+                CurrentMacText.Text = _originalMac;
 
                 if (_wifiAdapter.OperationalStatus ==
                     OperationalStatus.Up)
                 {
-                    StatusText.Text =
-                        "●  CONNECTED";
-
-                    StatusText.Foreground =
-                        new SolidColorBrush(
-                            Color.FromRgb(101, 232, 174));
+                    SetStatus(
+                        "●  CONNECTED",
+                        Color.FromRgb(101, 232, 174));
                 }
                 else
                 {
-                    StatusText.Text =
-                        "●  DISCONNECTED";
-
-                    StatusText.Foreground =
-                        new SolidColorBrush(
-                            Color.FromRgb(255, 190, 80));
+                    SetStatus(
+                        "●  DISCONNECTED",
+                        Color.FromRgb(255, 190, 80));
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 AdapterNameText.Text =
                     "Unable to detect Wi-Fi adapter";
 
-                StatusText.Text =
-                    "●  ERROR";
+                SetStatus(
+                    "●  ERROR",
+                    Color.FromRgb(255, 100, 100));
 
-                StatusText.Foreground =
-                    new SolidColorBrush(
-                        Color.FromRgb(255, 100, 100));
-
-                OldMacText.Text =
-                    "Not available";
-
-                CurrentMacText.Text =
-                    "Not available";
+                MessageBox.Show(
+                    ex.Message,
+                    "Adapter Detection Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
-
         // ============================================================
-        // FORMAT MAC
+        // GET CURRENT MAC
         // ============================================================
 
-        private string FormatMac(
-            PhysicalAddress address)
+        private string GetCurrentMac()
         {
+            if (_wifiAdapter == null)
+                return "Not available";
+
+            var address =
+                _wifiAdapter.GetPhysicalAddress();
+
             byte[] bytes =
                 address.GetAddressBytes();
 
-
             if (bytes.Length != 6)
                 return "Not available";
-
 
             return string.Join(
                 "-",
@@ -180,21 +133,16 @@ namespace SimpleMACChanger
                     b => b.ToString("X2")));
         }
 
-
         // ============================================================
         // GENERATE LOCALLY ADMINISTERED MAC
         // ============================================================
 
         private string GenerateMac()
         {
-            byte[] mac =
-                new byte[6];
-
+            byte[] mac = new byte[6];
 
             // Locally administered + unicast.
-
             mac[0] = 0x02;
-
 
             for (int i = 1; i < 6; i++)
             {
@@ -202,87 +150,372 @@ namespace SimpleMACChanger
                     (byte)_random.Next(0, 256);
             }
 
-
             return string.Join(
                 "-",
                 mac.Select(
                     b => b.ToString("X2")));
         }
 
-
         // ============================================================
-        // GENERATE BUTTON
+        // FIND WINDOWS NETWORK DRIVER REGISTRY KEY
         // ============================================================
 
-        private void Generate_Click(
-            object sender,
-            RoutedEventArgs e)
+        private RegistryKey? FindAdapterRegistryKey()
         {
-            string mac =
-                GenerateMac();
+            if (_wifiAdapter == null)
+                return null;
 
+            string interfaceGuid =
+                _wifiAdapter.Id.ToString();
 
-            NewMacText.Text =
-                mac;
+            using RegistryKey? baseKey =
+                Registry.LocalMachine.OpenSubKey(
+                    $@"SYSTEM\CurrentControlSet\Control\Class\{{{NetworkClassGuid}}}",
+                    writable: true);
 
+            if (baseKey == null)
+                return null;
 
-            CurrentMacText.Text =
-                mac;
+            foreach (string subName in baseKey.GetSubKeyNames())
+            {
+                using RegistryKey? subKey =
+                    baseKey.OpenSubKey(
+                        subName,
+                        writable: true);
 
+                if (subKey == null)
+                    continue;
 
-            StatusText.Text =
-                "●  GENERATED";
+                object? instanceId =
+                    subKey.GetValue(
+                        "NetCfgInstanceId");
 
+                if (instanceId == null)
+                    continue;
 
-            StatusText.Foreground =
-                new SolidColorBrush(
-                    Color.FromRgb(
-                        143,
-                        183,
-                        255));
+                if (string.Equals(
+                    instanceId.ToString(),
+                    interfaceGuid,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return baseKey.OpenSubKey(
+                        subName,
+                        writable: true);
+                }
+            }
 
+            return null;
+        }
+
+        // ============================================================
+        // SET MAC OVERRIDE
+        // ============================================================
+
+        private bool SetMacOverride(string mac)
+        {
+            using RegistryKey? key =
+                FindAdapterRegistryKey();
+
+            if (key == null)
+                return false;
+
+            string cleanMac =
+                mac.Replace("-", "")
+                   .Replace(":", "")
+                   .ToUpperInvariant();
+
+            key.SetValue(
+                "NetworkAddress",
+                cleanMac,
+                RegistryValueKind.String);
+
+            return true;
+        }
+
+        // ============================================================
+        // REMOVE MAC OVERRIDE
+        // ============================================================
+
+        private bool RemoveMacOverride()
+        {
+            using RegistryKey? key =
+                FindAdapterRegistryKey();
+
+            if (key == null)
+                return false;
+
+            if (key.GetValue("NetworkAddress") != null)
+            {
+                key.DeleteValue(
+                    "NetworkAddress",
+                    throwOnMissingValue: false);
+            }
+
+            return true;
+        }
+
+        // ============================================================
+        // RESTART NETWORK ADAPTER
+        // ============================================================
+
+        private async Task<bool> RestartAdapter()
+        {
+            if (_wifiAdapter == null)
+                return false;
+
+            string adapterName =
+                _wifiAdapter.Name;
 
             try
             {
-                Clipboard.SetText(mac);
+                await RunPowerShell(
+                    $"Disable-NetAdapter -Name '{EscapePowerShell(adapterName)}' -Confirm:$false");
+
+                await Task.Delay(2500);
+
+                await RunPowerShell(
+                    $"Enable-NetAdapter -Name '{EscapePowerShell(adapterName)}' -Confirm:$false");
+
+                await Task.Delay(3500);
+
+                return true;
             }
             catch
             {
+                return false;
             }
         }
 
+        // ============================================================
+        // POWERSHELL
+        // ============================================================
+
+        private async Task<string> RunPowerShell(
+            string command)
+        {
+            return await Task.Run(() =>
+            {
+                var psi =
+                    new ProcessStartInfo
+                    {
+                        FileName =
+                            "powershell.exe",
+
+                        Arguments =
+                            $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"{command}\"",
+
+                        UseShellExecute = false,
+
+                        RedirectStandardOutput = true,
+
+                        RedirectStandardError = true,
+
+                        CreateNoWindow = true
+                    };
+
+                using Process process =
+                    new Process();
+
+                process.StartInfo = psi;
+
+                process.Start();
+
+                string output =
+                    process.StandardOutput.ReadToEnd();
+
+                string error =
+                    process.StandardError.ReadToEnd();
+
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    throw new Exception(
+                        string.IsNullOrWhiteSpace(error)
+                            ? "Windows could not change the adapter."
+                            : error);
+                }
+
+                return output;
+            });
+        }
+
+        private string EscapePowerShell(string value)
+        {
+            return value.Replace(
+                "'",
+                "''");
+        }
 
         // ============================================================
-        // RESTORE BUTTON
+        // GENERATE / APPLY
         // ============================================================
 
-        private void Restore_Click(
+        private async void Generate_Click(
             object sender,
             RoutedEventArgs e)
         {
-            CurrentMacText.Text =
-                _originalMac;
+            if (_wifiAdapter == null)
+            {
+                MessageBox.Show(
+                    "No Wi-Fi adapter was detected.",
+                    "MAC Changer",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
 
+                return;
+            }
 
-            NewMacText.Text =
-                "Not generated yet";
+            try
+            {
+                string newMac =
+                    GenerateMac();
 
+                NewMacText.Text =
+                    newMac;
 
-            StatusText.Text =
-                "●  CONNECTED";
+                SetStatus(
+                    "●  APPLYING...",
+                    Color.FromRgb(143, 183, 255));
 
+                // Apply registry override.
+                if (!SetMacOverride(newMac))
+                {
+                    throw new Exception(
+                        "Could not find the Windows registry entry for this Wi-Fi adapter.");
+                }
 
-            StatusText.Foreground =
-                new SolidColorBrush(
-                    Color.FromRgb(
-                        101,
-                        232,
-                        174));
+                // Restart adapter.
+                if (!await RestartAdapter())
+                {
+                    throw new Exception(
+                        "Windows could not restart the Wi-Fi adapter.");
+                }
+
+                // Refresh adapter information.
+                await Task.Delay(1000);
+
+                DetectWifiAdapter();
+
+                string actualMac =
+                    GetCurrentMac();
+
+                CurrentMacText.Text =
+                    actualMac;
+
+                // Verify.
+                if (string.Equals(
+                    actualMac,
+                    newMac,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    SetStatus(
+                        "●  CHANGED",
+                        Color.FromRgb(101, 232, 174));
+
+                    try
+                    {
+                        Clipboard.SetText(actualMac);
+                    }
+                    catch
+                    {
+                    }
+                }
+                else
+                {
+                    SetStatus(
+                        "●  NOT CHANGED",
+                        Color.FromRgb(255, 190, 80));
+
+                    MessageBox.Show(
+                        "Windows restarted the adapter, but the adapter did not report the requested MAC address.\n\nThis usually means the Wi-Fi driver does not support NetworkAddress overrides.",
+                        "MAC Change Not Applied",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                SetStatus(
+                    "●  ERROR",
+                    Color.FromRgb(255, 100, 100));
+
+                MessageBox.Show(
+                    ex.Message,
+                    "MAC Change Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                DetectWifiAdapter();
+            }
         }
 
+        // ============================================================
+        // RESTORE
+        // ============================================================
+
+        private async void Restore_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_wifiAdapter == null)
+                return;
+
+            try
+            {
+                SetStatus(
+                    "●  RESTORING...",
+                    Color.FromRgb(255, 190, 80));
+
+                // Remove the override instead of writing the
+                // original MAC into NetworkAddress.
+                if (!RemoveMacOverride())
+                {
+                    throw new Exception(
+                        "Could not find the Windows registry entry for this Wi-Fi adapter.");
+                }
+
+                if (!await RestartAdapter())
+                {
+                    throw new Exception(
+                        "Windows could not restart the Wi-Fi adapter.");
+                }
+
+                await Task.Delay(1000);
+
+                DetectWifiAdapter();
+
+                string actualMac =
+                    GetCurrentMac();
+
+                CurrentMacText.Text =
+                    actualMac;
+
+                NewMacText.Text =
+                    "Not generated yet";
+
+                SetStatus(
+                    "●  CONNECTED",
+                    Color.FromRgb(101, 232, 174));
+            }
+            catch (Exception ex)
+            {
+                SetStatus(
+                    "●  ERROR",
+                    Color.FromRgb(255, 100, 100));
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Restore Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                DetectWifiAdapter();
+            }
+        }
 
         // ============================================================
-        // COPY BUTTON
+        // COPY
         // ============================================================
 
         private void Copy_Click(
@@ -291,10 +524,7 @@ namespace SimpleMACChanger
         {
             if (NewMacText.Text ==
                 "Not generated yet")
-            {
                 return;
-            }
-
 
             try
             {
@@ -306,6 +536,19 @@ namespace SimpleMACChanger
             }
         }
 
+        // ============================================================
+        // STATUS
+        // ============================================================
+
+        private void SetStatus(
+            string text,
+            Color color)
+        {
+            StatusText.Text = text;
+
+            StatusText.Foreground =
+                new SolidColorBrush(color);
+        }
 
         // ============================================================
         // CLOSE
@@ -318,7 +561,6 @@ namespace SimpleMACChanger
             Close();
         }
 
-
         // ============================================================
         // MINIMIZE
         // ============================================================
@@ -330,7 +572,6 @@ namespace SimpleMACChanger
             WindowState =
                 WindowState.Minimized;
         }
-
 
         // ============================================================
         // MAXIMIZE
@@ -346,9 +587,8 @@ namespace SimpleMACChanger
                     : WindowState.Normal;
         }
 
-
         // ============================================================
-        // DRAG WINDOW
+        // MOVE WINDOW
         // ============================================================
 
         private void TitleBar_MouseDown(
