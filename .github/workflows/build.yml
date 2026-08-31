@@ -1,29 +1,110 @@
-name: Build SimpleMACChanger
+name: Build Simple MAC Changer
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout project
-        uses: actions/checkout@v5
 
-      - name: Install .NET 8
-        uses: actions/setup-dotnet@v5
+      # --------------------------------
+      # Get source code
+      # --------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      # --------------------------------
+      # Install .NET 8 SDK
+      # --------------------------------
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore project
+
+      # --------------------------------
+      # Show installed .NET version
+      # --------------------------------
+      - name: Check .NET
+        shell: pwsh
+        run: |
+          dotnet --version
+          dotnet --info
+
+
+      # --------------------------------
+      # Restore project
+      # --------------------------------
+      - name: Restore
         run: dotnet restore SimpleMACChanger.csproj
 
-      - name: Build EXE
-        run: dotnet publish SimpleMACChanger.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
 
+      # --------------------------------
+      # Build + Publish EXE
+      # --------------------------------
+      - name: Publish Windows EXE
+        run: >
+          dotnet publish SimpleMACChanger.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          -o publish
+
+
+      # --------------------------------
+      # Rename final EXE
+      # --------------------------------
+      - name: Rename EXE
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem "publish\*.exe" | Select-Object -First 1
+
+          if (-not $exe) {
+              Write-Error "EXE was not created!"
+              exit 1
+          }
+
+          Rename-Item $exe.FullName "SimpleMACChanger.exe"
+
+
+      # --------------------------------
+      # Create ZIP
+      # --------------------------------
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "publish\SimpleMACChanger.exe" `
+            -DestinationPath "SimpleMACChanger-Windows-x64.zip" `
+            -Force
+
+
+      # --------------------------------
+      # Upload EXE
+      # --------------------------------
       - name: Upload EXE
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: SimpleMACChanger-Windows-x64
           path: publish/SimpleMACChanger.exe
+
+
+      # --------------------------------
+      # Upload ZIP
+      # --------------------------------
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimpleMACChanger-ZIP
+          path: SimpleMACChanger-Windows-x64.zip
