@@ -11,6 +11,7 @@
     <RootNamespace>SimpleMACChanger</RootNamespace>
 
     <ApplicationIcon>App.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
